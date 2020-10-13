@@ -1,0 +1,64 @@
+---
+title: "Logistic Regression on mtcars"
+output: pdf_document
+---
+
+## Replace if any missing data
+```{r}
+library(ISLR)
+dim(mtcars)
+mc <-  mtcars
+for (i in 1:11) {
+  mc[, i] = ifelse(is.na(mc[, i]),
+                   ave (
+                     mc[, i],
+                     FUN = function(x) {
+                       mean(x, na.rm = TRUE)
+                     }
+                   ),
+                   mc[, i])
+}
+```
+
+## Turn response variable to factor
+
+```{r}
+mc$vs = factor(mc$vs, levels = c(0,1))
+
+```
+
+## Split data into Train/Test
+```{r}
+set.seed(12)
+split = sample.int(n = nrow(mc),
+                   size = floor(0.8 * nrow(mc)),
+                   replace = F)
+
+train = mc[split,]
+test = mc[-split,]
+
+```
+## Logistic Regression
+
+```{r}
+logReg = glm(vs ~ disp +  hp + wt, data = train, family = "binomial")
+summary(logReg)
+```
+
+
+## Predict / Confusion Matrix
+
+```{r}
+
+yHat = predict.glm(logReg, newdata = test, type = "response")
+table(test$vs,yHat > 0.5)
+```
+
+
+# model with hp only
+```{r}
+hp.glm = glm(vs ~ hp, data = train, family = "binomial")
+glm.pred <- predict.glm(hp.glm, newdata = test, type = "response")
+table(test$vs,glm.pred > 0.5)
+```
+
